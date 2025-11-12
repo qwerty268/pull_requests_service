@@ -10,15 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	ucDto "github.com/qwerty268/pull_request_service/internal/usecases/teams"
-)
-
-const (
-	teamExists  = "TEAM_EXISTS"
-	peExists    = "PR_EXISTS"
-	prMerged    = "PR_MERGED"
-	notAssigned = "NOT_ASSIGNED"
-	noCandidate = "NO_CANDIDATE"
-	notFound    = "NOT_FOUND"
+	"github.com/qwerty268/pull_request_service/internal/utils"
 )
 
 type Getter interface {
@@ -59,7 +51,7 @@ func (h *Handlers) AddTeam(c echo.Context) error {
 			return returnBadRequest(
 				c,
 				ErrorDetail{
-					Code:    teamExists,
+					Code:    utils.TeamExists,
 					Message: "team_name already exists",
 				},
 			)
@@ -89,7 +81,7 @@ func (h *Handlers) GetTeam(c echo.Context) error {
 			return returnNotFound(
 				c,
 				ErrorDetail{
-					Code:    notFound,
+					Code:    utils.NotFound,
 					Message: "team not found",
 				},
 			)
@@ -111,7 +103,11 @@ func ucDtoToTeamResponse(team *ucDto.Team) *TeamResponse {
 	}
 
 	for i, v := range team.Members {
-		resp.Members[i] = TeamMember(v)
+		resp.Members[i] = TeamMember{
+			UserID:   v.UserID,
+			Username: v.Username,
+			IsActive: &v.IsActive,
+		}
 	}
 
 	return resp
@@ -124,7 +120,11 @@ func addTeamrequestToUcDto(req *AddTeamRequest) ucDto.Team {
 	}
 
 	for i, v := range req.Members {
-		team.Members[i] = ucDto.TeamMember(v)
+		team.Members[i] = ucDto.TeamMember{
+			UserID:   v.UserID,
+			Username: v.Username,
+			IsActive: *v.IsActive,
+		}
 	}
 
 	return team

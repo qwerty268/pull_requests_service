@@ -18,6 +18,7 @@ import (
 )
 
 func Test_AddTeam(t *testing.T) {
+	isActive := false
 	t.Run("error_validate", func(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
@@ -37,7 +38,7 @@ func Test_AddTeam(t *testing.T) {
 				{
 					"user_id":   "u1",
 					"username":  "Alice",
-					"is_active": true,
+					"is_active": &isActive,
 				},
 			},
 		}
@@ -75,7 +76,7 @@ func Test_AddTeam(t *testing.T) {
 				{
 					UserID:   "u1",
 					Username: "Alice",
-					IsActive: true,
+					IsActive: &isActive,
 				},
 			},
 		}
@@ -121,7 +122,7 @@ func Test_AddTeam(t *testing.T) {
 				{
 					UserID:   "u1",
 					Username: "Alice",
-					IsActive: true,
+					IsActive: &isActive,
 				},
 			},
 		}
@@ -139,7 +140,7 @@ func Test_AddTeam(t *testing.T) {
 
 		expectedResponse := ErrorResponse{
 			Error: ErrorDetail{
-				Code:    teamExists,
+				Code:    utils.TeamExists,
 				Message: "team_name already exists",
 			},
 		}
@@ -172,7 +173,7 @@ func Test_AddTeam(t *testing.T) {
 				{
 					UserID:   "u1",
 					Username: "Alice",
-					IsActive: true,
+					IsActive: &isActive,
 				},
 			},
 		}
@@ -290,7 +291,7 @@ func Test_GetTeam(t *testing.T) {
 
 		expectedResponse := ErrorResponse{
 			Error: ErrorDetail{
-				Code:    notFound,
+				Code:    utils.NotFound,
 				Message: "team not found",
 			},
 		}

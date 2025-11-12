@@ -26,7 +26,7 @@ type ErrorResponse struct {
 type TeamMember struct {
 	UserID   string `json:"user_id" validate:"required"`
 	Username string `json:"username" validate:"required"`
-	IsActive bool   `json:"is_active" validate:"required"`
+	IsActive *bool  `json:"is_active" validate:"required"`
 }
 
 // AddTeamRequest - команда с участниками
