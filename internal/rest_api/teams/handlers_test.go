@@ -72,7 +72,7 @@ func Test_AddTeam(t *testing.T) {
 
 		validReq := AddTeamRequest{
 			TeamName: "backend",
-			Members: []TeamMember{
+			Members: []TeamMemberRequest{
 				{
 					UserID:   "u1",
 					Username: "Alice",
@@ -118,7 +118,7 @@ func Test_AddTeam(t *testing.T) {
 
 		validReq := AddTeamRequest{
 			TeamName: "backend",
-			Members: []TeamMember{
+			Members: []TeamMemberRequest{
 				{
 					UserID:   "u1",
 					Username: "Alice",
@@ -169,7 +169,7 @@ func Test_AddTeam(t *testing.T) {
 
 		validReq := AddTeamRequest{
 			TeamName: "backend",
-			Members: []TeamMember{
+			Members: []TeamMemberRequest{
 				{
 					UserID:   "u1",
 					Username: "Alice",

@@ -99,15 +99,11 @@ func ucDtoToTeamResponse(team *ucDto.Team) *TeamResponse {
 
 	resp := &TeamResponse{
 		TeamName: team.TeamName,
-		Members:  make([]TeamMember, len(team.Members)),
+		Members:  make([]TeamMemberResponse, len(team.Members)),
 	}
 
 	for i, v := range team.Members {
-		resp.Members[i] = TeamMember{
-			UserID:   v.UserID,
-			Username: v.Username,
-			IsActive: &v.IsActive,
-		}
+		resp.Members[i] = TeamMemberResponse(v)
 	}
 
 	return resp

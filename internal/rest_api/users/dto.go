@@ -6,10 +6,10 @@ type SetUserActiveRequest struct {
 }
 
 type SetUserActiveResponse struct {
-	UserID   string `json:"user_id" validate:"required"`
-	Username string `json:"username" validate:"required"`
-	TeamName string `json:"team_name" validate:"required"`
-	IsActive bool   `json:"is_active" validate:"required"`
+	UserID   string `json:"user_id"`
+	Username string `json:"username"`
+	TeamName string `json:"team_name"`
+	IsActive bool   `json:"is_active"`
 }
 
 type GetUserReviewRequestsRequest struct {
