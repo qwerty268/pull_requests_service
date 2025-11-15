@@ -13,16 +13,16 @@ import (
 	"github.com/qwerty268/pull_request_service/internal/utils"
 )
 
-type Getter interface {
+type Usecase interface {
 	AddTeam(ctx context.Context, team ucDto.Team) error
 	GetTeam(ctx context.Context, teamName string) (*ucDto.Team, error)
 }
 
 type Handlers struct {
-	getter Getter
+	getter Usecase
 }
 
-func NewHandlers(getter Getter) *Handlers {
+func NewHandlers(getter Usecase) *Handlers {
 	return &Handlers{
 		getter: getter,
 	}

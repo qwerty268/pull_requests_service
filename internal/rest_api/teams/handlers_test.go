@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -129,7 +130,7 @@ func Test_AddTeam(t *testing.T) {
 
 		getterMock.EXPECT().
 			AddTeam(gomock.Any(), gomock.Any()).
-			Return(ucDto.ErrAlreadyExists).
+			Return(fmt.Errorf("ailed to add new teram: %w", ucDto.ErrAlreadyExists)).
 			Times(1)
 
 		reqBody, _ := json.Marshal(validReq)
