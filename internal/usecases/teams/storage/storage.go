@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgconn"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 var (
@@ -40,7 +40,7 @@ func (s *Storage) AddTeam(team Team) error {
 	// 1. Создать команду.
 	_, err = tx.Exec(`INSERT INTO team (team_name) VALUES ($1)`, team.TeamName)
 	if err != nil {
-		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 			return fmt.Errorf("insert team: %w", ErrAlreadyExists)
 		}
 		return fmt.Errorf("insert team: %v", err)
@@ -59,7 +59,7 @@ func (s *Storage) AddTeam(team Team) error {
 				is_active=excluded.is_active
 		`, m.UserID, m.Username, team.TeamName, m.IsActive)
 		if err != nil {
-			return fmt.Errorf("insert/update user: %v", err)
+			return fmt.Errorf("insert user: %v", err)
 		}
 
 		_, err = tx.Exec(`
@@ -84,7 +84,7 @@ func (s *Storage) GetTeam(teamName string) (*Team, error) {
 		u.username,
 		u.team_name,
 		u.is_active
-	FROM user AS u
+	FROM "user" AS u
 	JOIN team_user_map AS tum ON tum.user_id = u.user_id
 	WHERE tum.team_name = $1
 	`
@@ -99,7 +99,7 @@ func (s *Storage) GetTeam(teamName string) (*Team, error) {
 	for rows.Next() {
 		var m TeamMember
 		// user_id, username, team_name, is_active
-		if err := rows.Scan(&m.UserID, &m.Username, new(string), &m.IsActive); err != nil {
+		if err := rows.Scan(&m.UserID, &m.Username, &m.Username, &m.IsActive); err != nil {
 			return nil, fmt.Errorf("scan: %v", err)
 		}
 		members = append(members, m)
@@ -122,7 +122,7 @@ func (s *Storage) GetTeam(teamName string) (*Team, error) {
 func (s *Storage) GetUserActiveTeammates(userID string) ([]string, error) {
 	query := `
 	SELECT u.user_id
-	FROM user AS u
+	FROM "user" AS u
 	JOIN team_user_map AS tum ON tum.user_id = u.user_id
 	WHERE tum.team_name = (SELECT team_name FROM team_user_map WHERE user_id = $1 LIMIT 1)
 	AND u.user_id != $1 AND u.is_active

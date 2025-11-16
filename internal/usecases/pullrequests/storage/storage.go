@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jackc/pgconn"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -35,8 +34,8 @@ func (s *Storage) GetUserReviewRequests(userID string) ([]PullRequestShort, erro
 	SELECT
 		pr.pull_request_id,
 		pr.pull_request_name,
-		pr.AuthorID,
-		pr.isMerged
+		pr.author_id,
+		pr.is_merged
 	FROM pull_request AS pr
 	JOIN pr_reviewers_map AS prm ON prm.pull_request_id = pr.pull_request_id
 	WHERE prm.user_id = $1;
@@ -82,7 +81,7 @@ func (s *Storage) AddPr(pr PullRequest) error {
 			($1, $2, $3, $4, $5, $6, $7)
 	`, pr.PullRequestID, pr.PullRequestName, pr.AuthorID, pr.IsMerged, pq.Array(pr.AssignedReviewers), pr.CreatedAt, pr.MergedAt)
 	if err != nil {
-		if pgErr, ok := err.(*pgconn.PgError); ok && pgErr.Code == "23505" {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 			return fmt.Errorf("insert team: %w", ErrAlreadyExists)
 		}
 		return fmt.Errorf("insert pull_request: %v", err)
@@ -107,14 +106,37 @@ func (s *Storage) AddPr(pr PullRequest) error {
 
 func (s *Storage) SetPrMerged(prID string) (*PullRequest, error) {
 	now := time.Now()
-	query := `
+	// Сначала пробуем смержить, но только если не смержен
+	queryUpdate := `
 		UPDATE pull_request
 		SET is_merged = TRUE, merged_at = $2
-		WHERE pull_request_id = $1
+		WHERE pull_request_id = $1 AND is_merged = FALSE
 		RETURNING pull_request_id, pull_request_name, author_id, is_merged, assigned_reviewers, created_at, merged_at
 	`
 	var pr PullRequest
-	err := s.db.QueryRow(query, prID, now).Scan(
+	err := s.db.QueryRow(queryUpdate, prID, now).Scan(
+		&pr.PullRequestID,
+		&pr.PullRequestName,
+		&pr.AuthorID,
+		&pr.IsMerged,
+		pq.Array(&pr.AssignedReviewers),
+		&pr.CreatedAt,
+		&pr.MergedAt,
+	)
+	if err == nil {
+		return &pr, nil
+	}
+
+	if !errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("SetPrMerged (update): %w", err)
+	}
+
+	querySelect := `
+		SELECT pull_request_id, pull_request_name, author_id, is_merged, assigned_reviewers, created_at, merged_at
+		FROM pull_request
+		WHERE pull_request_id = $1
+	`
+	err = s.db.QueryRow(querySelect, prID).Scan(
 		&pr.PullRequestID,
 		&pr.PullRequestName,
 		&pr.AuthorID,
@@ -127,7 +149,7 @@ func (s *Storage) SetPrMerged(prID string) (*PullRequest, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
 		}
-		return nil, fmt.Errorf("SetPrMerged: %w", err)
+		return nil, fmt.Errorf("SetPrMerged (select): %w", err)
 	}
 	return &pr, nil
 }

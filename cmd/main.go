@@ -16,6 +16,7 @@ import (
 	teamStorage "github.com/qwerty268/pull_request_service/internal/usecases/teams/storage"
 	userUsecase "github.com/qwerty268/pull_request_service/internal/usecases/users"
 	userStorage "github.com/qwerty268/pull_request_service/internal/usecases/users/storage"
+	"github.com/qwerty268/pull_request_service/internal/utils"
 )
 
 func main() {
@@ -45,6 +46,8 @@ func main() {
 	userHandlers := userHandlers.NewUserHandlers(userUsecase)
 
 	e := echo.New()
+	e.Validator = utils.NewHTTPRequestValidator()
+
 	prHandlers.RegisterHandlers(e)
 	teamsHandlers.RegisterHandlers(e)
 	userHandlers.RegisterHandlers(e)

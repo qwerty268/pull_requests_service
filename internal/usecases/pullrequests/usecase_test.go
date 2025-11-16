@@ -38,7 +38,7 @@ func TestUsecase_CreatePR(t *testing.T) {
 	}
 	t.Run("user not exists in team", func(t *testing.T) {
 		mockTeamStorage.EXPECT().
-			CheckUserInCommand(base.AuthorID, base.PullRequestID).
+			CheckUserInCommand(base.AuthorID).
 			Return(false, nil)
 
 		pr, err := usecase.CreatePR(ctx, base)
@@ -48,7 +48,7 @@ func TestUsecase_CreatePR(t *testing.T) {
 
 	t.Run("CheckUserInCommand error", func(t *testing.T) {
 		mockTeamStorage.EXPECT().
-			CheckUserInCommand(base.AuthorID, base.PullRequestID).
+			CheckUserInCommand(base.AuthorID).
 			Return(false, errors.New("db check error"))
 
 		pr, err := usecase.CreatePR(ctx, base)
@@ -59,7 +59,7 @@ func TestUsecase_CreatePR(t *testing.T) {
 
 	t.Run("GetUserActiveTeammates error", func(t *testing.T) {
 		mockTeamStorage.EXPECT().
-			CheckUserInCommand(base.AuthorID, base.PullRequestID).
+			CheckUserInCommand(base.AuthorID).
 			Return(true, nil)
 
 		mockTeamStorage.EXPECT().
@@ -77,7 +77,7 @@ func TestUsecase_CreatePR(t *testing.T) {
 		activeTeammates := []string{"a1", "a2"}
 
 		mockTeamStorage.EXPECT().
-			CheckUserInCommand(base.AuthorID, base.PullRequestID).
+			CheckUserInCommand(base.AuthorID).
 			Return(true, nil)
 
 		mockTeamStorage.EXPECT().
@@ -111,7 +111,7 @@ func TestUsecase_CreatePR(t *testing.T) {
 		team := []string{"a1", "a2", "a3", "a4"}
 
 		mockTeamStorage.EXPECT().
-			CheckUserInCommand(base.AuthorID, base.PullRequestID).
+			CheckUserInCommand(base.AuthorID).
 			Return(true, nil)
 
 		mockTeamStorage.EXPECT().
@@ -146,7 +146,7 @@ func TestUsecase_CreatePR(t *testing.T) {
 
 	t.Run("AddPr already exists", func(t *testing.T) {
 		mockTeamStorage.EXPECT().
-			CheckUserInCommand(base.AuthorID, base.PullRequestID).
+			CheckUserInCommand(base.AuthorID).
 			Return(true, nil)
 		mockTeamStorage.EXPECT().
 			GetUserActiveTeammates(base.AuthorID).
@@ -171,7 +171,7 @@ func TestUsecase_CreatePR(t *testing.T) {
 
 	t.Run("AddPr other error", func(t *testing.T) {
 		mockTeamStorage.EXPECT().
-			CheckUserInCommand(base.AuthorID, base.PullRequestID).
+			CheckUserInCommand(base.AuthorID).
 			Return(true, nil)
 		mockTeamStorage.EXPECT().
 			GetUserActiveTeammates(base.AuthorID).
@@ -234,7 +234,7 @@ func TestUsecase_MergePR(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		mockPRStorage.EXPECT().
 			SetPrMerged("pr-notfound").
-			Return(nil, ErrNotFound)
+			Return(nil, repo.ErrNotFound)
 
 		pr, err := uc.MergePR(ctx, "pr-notfound")
 		require.ErrorIs(t, err, ErrNotFound)

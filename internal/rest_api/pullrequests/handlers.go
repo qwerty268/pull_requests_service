@@ -33,6 +33,7 @@ func NewHandlers(prCreator PRCreator) *PRHandlers {
 func (h *PRHandlers) RegisterHandlers(e *echo.Echo) {
 	e.POST("/pullRequest/create", h.CreatePR)
 	e.POST("/pullRequest/merge", h.MergePR)
+	e.POST("/pullRequest/reassign", h.ReassignReviewer)
 }
 
 // CreatePR создает PR и назначает ревьюверов

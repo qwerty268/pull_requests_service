@@ -71,7 +71,7 @@ func (u Usecase) CreatePR(_ context.Context, pr CreatePROpst) (*PullRequest, err
 		CreatedAt:       time.Now(),
 	}
 
-	ok, err := u.userStorage.CheckUserExists(pr.AuthorID)
+	ok, err := u.teamStorage.CheckUserInCommand(pr.AuthorID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if users exists: %v", err)
 	}
@@ -129,7 +129,7 @@ func getRandomReviewers(activeTeammates []string) []string {
 func (u Usecase) MergePR(ctx context.Context, prID string) (*PullRequest, error) {
 	storagePr, err := u.prStorage.SetPrMerged(prID)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, repository.ErrNotFound) {
 			return nil, fmt.Errorf("failed to set merged flag: %w", ErrNotFound)
 		}
 		return nil, fmt.Errorf("failed to set merged flag: %v", err)
