@@ -72,13 +72,12 @@ func (mr *MockPRCreatorMockRecorder) MergePR(ctx, prID any) *gomock.Call {
 }
 
 // ReassignReviewer mocks base method.
-func (m *MockPRCreator) ReassignReviewer(ctx context.Context, prID, oldUserID string) (*pullrequests.PullRequest, string, error) {
+func (m *MockPRCreator) ReassignReviewer(ctx context.Context, prID, oldUserID string) (*pullrequests.ReassignedRewiew, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReassignReviewer", ctx, prID, oldUserID)
-	ret0, _ := ret[0].(*pullrequests.PullRequest)
-	ret1, _ := ret[1].(string)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(*pullrequests.ReassignedRewiew)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // ReassignReviewer indicates an expected call of ReassignReviewer.

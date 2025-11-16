@@ -17,7 +17,7 @@ import (
 type PRCreator interface {
 	CreatePR(ctx context.Context, pr ucDto.CreatePROpst) (*ucDto.PullRequest, error)
 	MergePR(ctx context.Context, prID string) (*ucDto.PullRequest, error)
-	ReassignReviewer(ctx context.Context, prID, oldUserID string) (*ucDto.PullRequest, string, error)
+	ReassignReviewer(ctx context.Context, prID, oldUserID string) (*ucDto.ReassignedRewiew, error)
 }
 
 type PRHandlers struct {
@@ -61,7 +61,7 @@ func (h *PRHandlers) CreatePR(c echo.Context) error {
 				c,
 				utils.ErrorDetail{
 					Code:    utils.PrExists,
-					Message: "PR id already exists",
+					Message: "PR уже существует",
 				},
 			)
 		}
@@ -70,7 +70,7 @@ func (h *PRHandlers) CreatePR(c echo.Context) error {
 				c,
 				utils.ErrorDetail{
 					Code:    utils.NotFound,
-					Message: "author or team not found",
+					Message: "Автор/команда не найдены",
 				},
 			)
 		}
@@ -122,7 +122,7 @@ func (h *PRHandlers) ReassignReviewer(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	pr, newReviewer, err := h.prUsecase.ReassignReviewer(ctx, req.PullRequestID, req.OldUserID)
+	reassignedPr, err := h.prUsecase.ReassignReviewer(ctx, req.PullRequestID, req.OldUserID)
 	if err != nil {
 		if errors.Is(err, ucDto.ErrNotFound) {
 			return utils.ReturnNotFound(
@@ -164,8 +164,8 @@ func (h *PRHandlers) ReassignReviewer(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, ReassignReviewerResponse{
-		PR:         responseFromPr(pr),
-		ReplacedBy: newReviewer,
+		PR:         responseFromPr(&reassignedPr.Pr),
+		ReplacedBy: reassignedPr.NewReviewer,
 	})
 }
 

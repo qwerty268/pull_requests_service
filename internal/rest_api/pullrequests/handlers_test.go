@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
-	"github.com/qwerty268/pull_request_service/internal/rest_api/pull_requests/mocks"
+	"github.com/qwerty268/pull_request_service/internal/rest_api/pullrequests/mocks"
 	ucDto "github.com/qwerty268/pull_request_service/internal/usecases/pullrequests"
 	"github.com/qwerty268/pull_request_service/internal/utils"
 )
@@ -148,7 +148,7 @@ func Test_CreatePR(t *testing.T) {
 		expectedResponse := utils.ErrorResponse{
 			Error: utils.ErrorDetail{
 				Code:    utils.PrExists,
-				Message: "PR id already exists",
+				Message: "PR уже существует",
 			},
 		}
 
@@ -195,7 +195,7 @@ func Test_CreatePR(t *testing.T) {
 		expectedResponse := utils.ErrorResponse{
 			Error: utils.ErrorDetail{
 				Code:    utils.NotFound,
-				Message: "author or team not found",
+				Message: "Автор/команда не найдены",
 			},
 		}
 
@@ -431,19 +431,22 @@ func Test_ReassignReviewer(t *testing.T) {
 			OldUserID:     "u2",
 		}
 
-		usecasePR := &ucDto.PullRequest{
-			PullRequestID:     "pr-1001",
-			PullRequestName:   "Add search",
-			AuthorID:          "u1",
-			Status:            "OPEN",
-			AssignedReviewers: []string{"u3", "u5"},
-			CreatedAt:         time.Now(),
+		usecasePR := &ucDto.ReassignedRewiew{
+			Pr: ucDto.PullRequest{
+				PullRequestID:     "pr-1001",
+				PullRequestName:   "Add search",
+				AuthorID:          "u1",
+				Status:            "OPEN",
+				AssignedReviewers: []string{"u3", "u5"},
+				CreatedAt:         time.Now(),
+			},
+			NewReviewer: "u5",
 		}
 		newReviewer := "u5"
 
 		prUsecaseMock.EXPECT().
 			ReassignReviewer(gomock.Any(), "pr-1001", "u2").
-			Return(usecasePR, newReviewer, nil).
+			Return(usecasePR, nil).
 			Times(1)
 
 		reqBody, _ := json.Marshal(reqData)
@@ -454,12 +457,12 @@ func Test_ReassignReviewer(t *testing.T) {
 
 		expectedResponse := ReassignReviewerResponse{
 			PR: PullRequest{
-				PullRequestID:     usecasePR.PullRequestID,
-				PullRequestName:   usecasePR.PullRequestName,
-				AuthorID:          usecasePR.AuthorID,
-				Status:            usecasePR.Status,
-				AssignedReviewers: usecasePR.AssignedReviewers,
-				CreatedAt:         &usecasePR.CreatedAt,
+				PullRequestID:     usecasePR.Pr.PullRequestID,
+				PullRequestName:   usecasePR.Pr.PullRequestName,
+				AuthorID:          usecasePR.Pr.AuthorID,
+				Status:            usecasePR.Pr.Status,
+				AssignedReviewers: usecasePR.Pr.AssignedReviewers,
+				CreatedAt:         &usecasePR.Pr.CreatedAt,
 			},
 			ReplacedBy: newReviewer,
 		}
@@ -529,7 +532,7 @@ func Test_ReassignReviewer(t *testing.T) {
 
 		prUsecaseMock.EXPECT().
 			ReassignReviewer(gomock.Any(), "unknown", "u2").
-			Return(nil, "", ucDto.ErrNotFound).
+			Return(nil, ucDto.ErrNotFound).
 			Times(1)
 
 		reqBody, _ := json.Marshal(reqData)
@@ -575,7 +578,7 @@ func Test_ReassignReviewer(t *testing.T) {
 
 		prUsecaseMock.EXPECT().
 			ReassignReviewer(gomock.Any(), "pr-1001", "u2").
-			Return(nil, "", ucDto.ErrPRMerged).
+			Return(nil, ucDto.ErrPRMerged).
 			Times(1)
 
 		reqBody, _ := json.Marshal(reqData)
@@ -621,7 +624,7 @@ func Test_ReassignReviewer(t *testing.T) {
 
 		prUsecaseMock.EXPECT().
 			ReassignReviewer(gomock.Any(), "pr-1001", "u99").
-			Return(nil, "", ucDto.ErrNotAssigned).
+			Return(nil, ucDto.ErrNotAssigned).
 			Times(1)
 
 		reqBody, _ := json.Marshal(reqData)
@@ -667,7 +670,7 @@ func Test_ReassignReviewer(t *testing.T) {
 
 		prUsecaseMock.EXPECT().
 			ReassignReviewer(gomock.Any(), "pr-1001", "u2").
-			Return(nil, "", ucDto.ErrNoCandidate).
+			Return(nil, ucDto.ErrNoCandidate).
 			Times(1)
 
 		reqBody, _ := json.Marshal(reqData)
@@ -713,7 +716,7 @@ func Test_ReassignReviewer(t *testing.T) {
 
 		prUsecaseMock.EXPECT().
 			ReassignReviewer(gomock.Any(), "pr-1001", "u2").
-			Return(nil, "", errors.New("internal error")).
+			Return(nil, errors.New("internal error")).
 			Times(1)
 
 		reqBody, _ := json.Marshal(reqData)
