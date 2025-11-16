@@ -31,7 +31,7 @@ func NewUserHandlers(userGetter UserGetter) *UserHandlers {
 	}
 }
 
-func (h *UserHandlers) RegisterUserHandlers(e *echo.Echo) {
+func (h *UserHandlers) RegisterHandlers(e *echo.Echo) {
 	e.POST("/users/setIsActive", h.SetUserActive)
 	e.GET("/users/getReview", h.GetUserReviewRequests)
 }

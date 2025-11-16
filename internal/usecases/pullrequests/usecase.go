@@ -39,7 +39,8 @@ type prStorage interface {
 type teamStorage interface {
 	// GetUserActiveTeammates выдает активных сокомандников, не включая самого пользователя.
 	GetUserActiveTeammates(userID string) ([]string, error)
-	// CheckUserInCommand смотрит существует ли запись про юзера в таблице team_user_map
+	// CheckUserInCommand смотрит существует ли запись про юзера в таблице team_user_map.
+	// Подразумевается, что у пользователя одна команда.
 	CheckUserInCommand(userID string) (bool, error)
 }
 
@@ -70,7 +71,7 @@ func (u Usecase) CreatePR(_ context.Context, pr CreatePROpst) (*PullRequest, err
 		CreatedAt:       time.Now(),
 	}
 
-	ok, err := u.teamStorage.CheckUserInCommand(pr.AuthorID)
+	ok, err := u.userStorage.CheckUserExists(pr.AuthorID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if users exists: %v", err)
 	}
@@ -202,21 +203,27 @@ func (u Usecase) ReassignReviewer(ctx context.Context, prID, oldUserID string) (
 		return nil, fmt.Errorf("failed to get active teammates: %v", err)
 	}
 
-	// 5. Из полученных пользователей вычитаем ревьюера, который должен остаться.
+	// 5. Из полученных пользователей вычитаем ревьюера, который должен остаться и автора.
+	var mustRemove map[string]struct{}
 	if reviewerShouldStay != nil {
-		idx := -1
-		for i, v := range activeMembers {
-			if *reviewerShouldStay == v {
-				idx = i
-				break
-			}
+		mustRemove = map[string]struct{}{
+			*reviewerShouldStay: {},
+			storagePr.AuthorID:  {},
 		}
-
-		// Если -1, значит выписали из активных.
-		if idx != -1 {
-			activeMembers = append(activeMembers[:idx], activeMembers[idx+1:]...)
+	} else {
+		mustRemove = map[string]struct{}{
+			storagePr.AuthorID: {},
 		}
 	}
+
+	// Фильтруем activeMembers
+	filtered := make([]string, 0, len(activeMembers))
+	for _, v := range activeMembers {
+		if _, toRemove := mustRemove[v]; !toRemove {
+			filtered = append(filtered, v)
+		}
+	}
+	activeMembers = filtered
 	// Нет кондидатов.
 	if len(activeMembers) == 0 {
 		return nil, fmt.Errorf("failed to assign new condidate: %w", ErrNoCandidate)

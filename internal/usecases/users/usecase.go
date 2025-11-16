@@ -7,30 +7,41 @@ import (
 	"errors"
 	"fmt"
 
-	repository "github.com/qwerty268/pull_request_service/internal/usecases/users/storage"
+	prRepository "github.com/qwerty268/pull_request_service/internal/usecases/pullrequests/storage"
+	userRepository "github.com/qwerty268/pull_request_service/internal/usecases/users/storage"
 )
 
 var ErrNotFound = errors.New("not found")
 
-type storage interface {
-	SetUserActive(userID string, isActive bool) (*repository.User, error)
-	GetUserReviewRequests(userID string) ([]repository.PullRequestShort, error)
+const (
+	statusOpen   = "OPEN"
+	statusMerged = "MERGED"
+)
+
+type userStorage interface {
+	SetUserActive(userID string, isActive bool) (*userRepository.User, error)
+}
+
+type prStorage interface {
+	GetUserReviewRequests(userID string) ([]prRepository.PullRequestShort, error)
 }
 
 type Usecase struct {
-	storage storage
+	userStorage userStorage
+	prStorage   prStorage
 }
 
-func NewUsecase(storage storage) Usecase {
+func NewUsecase(storage userStorage, prStorage prStorage) Usecase {
 	return Usecase{
-		storage: storage,
+		userStorage: storage,
+		prStorage:   prStorage,
 	}
 }
 
 func (u Usecase) SetUserActive(_ context.Context, userID string, isActive bool) (*User, error) {
-	storageUser, err := u.storage.SetUserActive(userID, isActive)
+	storageUser, err := u.userStorage.SetUserActive(userID, isActive)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
+		if errors.Is(err, userRepository.ErrNotFound) {
 			return nil, fmt.Errorf("failed to find user: %w", ErrNotFound)
 		}
 		return nil, fmt.Errorf("failed to set user active: %v", err)
@@ -40,9 +51,9 @@ func (u Usecase) SetUserActive(_ context.Context, userID string, isActive bool) 
 }
 
 func (u Usecase) GetUserReviewRequests(_ context.Context, userID string) ([]PullRequestShort, error) {
-	storagePrs, err := u.storage.GetUserReviewRequests(userID)
+	storagePrs, err := u.prStorage.GetUserReviewRequests(userID)
 	if err != nil {
-		if errors.Is(err, repository.ErrNotFound) {
+		if errors.Is(err, prRepository.ErrNotFound) {
 			return nil, fmt.Errorf("failed to get user PRs: %w", ErrNotFound)
 		}
 		return nil, fmt.Errorf("failed to get user PRs: %v", err)
@@ -50,10 +61,19 @@ func (u Usecase) GetUserReviewRequests(_ context.Context, userID string) ([]Pull
 	return fromStoragePrs(storagePrs), nil
 }
 
-func fromStoragePrs(storagePrs []repository.PullRequestShort) []PullRequestShort {
+func fromStoragePrs(storagePrs []prRepository.PullRequestShort) []PullRequestShort {
 	prs := make([]PullRequestShort, len(storagePrs))
 	for i, v := range storagePrs {
-		prs[i] = PullRequestShort(v)
+		prs[i] = PullRequestShort{
+			PullRequestID:   v.PullRequestID,
+			PullRequestName: v.PullRequestName,
+			AuthorID:        v.AuthorID,
+		}
+		if v.IsMerged {
+			prs[i].Status = statusMerged
+		} else {
+			prs[i].Status = statusOpen
+		}
 	}
 	return prs
 }

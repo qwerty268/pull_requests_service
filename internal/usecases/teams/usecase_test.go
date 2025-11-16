@@ -20,11 +20,11 @@ func TestUsecase_AddTeam(t *testing.T) {
 	mockStorage := mocks.NewMockstorage(ctrl)
 	u := Usecase{storage: mockStorage}
 
-	team := repository.Team{TeamName: "myteam"}
+	team := Team{TeamName: "myteam"}
 
 	t.Run("success", func(t *testing.T) {
 		mockStorage.EXPECT().
-			AddTeam(team).
+			AddTeam(toStorageTeam(team)).
 			Return(nil)
 
 		err := u.AddTeam(context.Background(), team)
@@ -33,7 +33,7 @@ func TestUsecase_AddTeam(t *testing.T) {
 
 	t.Run("team already exists", func(t *testing.T) {
 		mockStorage.EXPECT().
-			AddTeam(team).
+			AddTeam(toStorageTeam(team)).
 			Return(repository.ErrAlreadyExists)
 
 		err := u.AddTeam(context.Background(), team)
@@ -43,7 +43,7 @@ func TestUsecase_AddTeam(t *testing.T) {
 	t.Run("other error", func(t *testing.T) {
 		someErr := errors.New("db fail")
 		mockStorage.EXPECT().
-			AddTeam(team).
+			AddTeam(toStorageTeam(team)).
 			Return(someErr)
 
 		err := u.AddTeam(context.Background(), team)

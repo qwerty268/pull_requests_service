@@ -30,8 +30,8 @@ func NewUsecase(storage storage) Usecase {
 	}
 }
 
-func (u Usecase) AddTeam(_ context.Context, team repository.Team) error {
-	err := u.storage.AddTeam(team)
+func (u Usecase) AddTeam(_ context.Context, team Team) error {
+	err := u.storage.AddTeam(toStorageTeam(team))
 	if err != nil {
 		if errors.Is(err, repository.ErrAlreadyExists) {
 			return fmt.Errorf("failed to add new teram: %w", ErrAlreadyExists)
@@ -42,7 +42,18 @@ func (u Usecase) AddTeam(_ context.Context, team repository.Team) error {
 	return nil
 }
 
-func (u Usecase) GetTeam(ctx context.Context, teamName string) (*Team, error) {
+func toStorageTeam(team Team) repository.Team {
+	storageTeam := repository.Team{
+		TeamName: team.TeamName,
+		Members:  make([]repository.TeamMember, len(team.Members)),
+	}
+	for i, v := range team.Members {
+		storageTeam.Members[i] = repository.TeamMember(v)
+	}
+	return storageTeam
+}
+
+func (u Usecase) GetTeam(_ context.Context, teamName string) (*Team, error) {
 	storageTeam, err := u.storage.GetTeam(teamName)
 	if err != nil {
 		if errors.Is(err, repository.ErrNotFound) {

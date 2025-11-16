@@ -12,36 +12,76 @@ package mocks
 import (
 	reflect "reflect"
 
-	storage "github.com/qwerty268/pull_request_service/internal/usecases/users/storage"
+	storage "github.com/qwerty268/pull_request_service/internal/usecases/pullrequests/storage"
+	storage0 "github.com/qwerty268/pull_request_service/internal/usecases/users/storage"
 	gomock "go.uber.org/mock/gomock"
 )
 
-// Mockstorage is a mock of storage interface.
-type Mockstorage struct {
+// MockuserStorage is a mock of userStorage interface.
+type MockuserStorage struct {
 	ctrl     *gomock.Controller
-	recorder *MockstorageMockRecorder
+	recorder *MockuserStorageMockRecorder
 	isgomock struct{}
 }
 
-// MockstorageMockRecorder is the mock recorder for Mockstorage.
-type MockstorageMockRecorder struct {
-	mock *Mockstorage
+// MockuserStorageMockRecorder is the mock recorder for MockuserStorage.
+type MockuserStorageMockRecorder struct {
+	mock *MockuserStorage
 }
 
-// NewMockstorage creates a new mock instance.
-func NewMockstorage(ctrl *gomock.Controller) *Mockstorage {
-	mock := &Mockstorage{ctrl: ctrl}
-	mock.recorder = &MockstorageMockRecorder{mock}
+// NewMockuserStorage creates a new mock instance.
+func NewMockuserStorage(ctrl *gomock.Controller) *MockuserStorage {
+	mock := &MockuserStorage{ctrl: ctrl}
+	mock.recorder = &MockuserStorageMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *Mockstorage) EXPECT() *MockstorageMockRecorder {
+func (m *MockuserStorage) EXPECT() *MockuserStorageMockRecorder {
+	return m.recorder
+}
+
+// SetUserActive mocks base method.
+func (m *MockuserStorage) SetUserActive(userID string, isActive bool) (*storage0.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetUserActive", userID, isActive)
+	ret0, _ := ret[0].(*storage0.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SetUserActive indicates an expected call of SetUserActive.
+func (mr *MockuserStorageMockRecorder) SetUserActive(userID, isActive any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserActive", reflect.TypeOf((*MockuserStorage)(nil).SetUserActive), userID, isActive)
+}
+
+// MockprStorage is a mock of prStorage interface.
+type MockprStorage struct {
+	ctrl     *gomock.Controller
+	recorder *MockprStorageMockRecorder
+	isgomock struct{}
+}
+
+// MockprStorageMockRecorder is the mock recorder for MockprStorage.
+type MockprStorageMockRecorder struct {
+	mock *MockprStorage
+}
+
+// NewMockprStorage creates a new mock instance.
+func NewMockprStorage(ctrl *gomock.Controller) *MockprStorage {
+	mock := &MockprStorage{ctrl: ctrl}
+	mock.recorder = &MockprStorageMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockprStorage) EXPECT() *MockprStorageMockRecorder {
 	return m.recorder
 }
 
 // GetUserReviewRequests mocks base method.
-func (m *Mockstorage) GetUserReviewRequests(userID string) ([]storage.PullRequestShort, error) {
+func (m *MockprStorage) GetUserReviewRequests(userID string) ([]storage.PullRequestShort, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserReviewRequests", userID)
 	ret0, _ := ret[0].([]storage.PullRequestShort)
@@ -50,22 +90,7 @@ func (m *Mockstorage) GetUserReviewRequests(userID string) ([]storage.PullReques
 }
 
 // GetUserReviewRequests indicates an expected call of GetUserReviewRequests.
-func (mr *MockstorageMockRecorder) GetUserReviewRequests(userID any) *gomock.Call {
+func (mr *MockprStorageMockRecorder) GetUserReviewRequests(userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserReviewRequests", reflect.TypeOf((*Mockstorage)(nil).GetUserReviewRequests), userID)
-}
-
-// SetUserActive mocks base method.
-func (m *Mockstorage) SetUserActive(userID string, isActive bool) (*storage.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetUserActive", userID, isActive)
-	ret0, _ := ret[0].(*storage.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SetUserActive indicates an expected call of SetUserActive.
-func (mr *MockstorageMockRecorder) SetUserActive(userID, isActive any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetUserActive", reflect.TypeOf((*Mockstorage)(nil).SetUserActive), userID, isActive)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserReviewRequests", reflect.TypeOf((*MockprStorage)(nil).GetUserReviewRequests), userID)
 }

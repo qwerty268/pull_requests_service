@@ -17,3 +17,10 @@ type ResetReviewerFilter struct {
 	OldUserID string
 	NewUserID string
 }
+
+type PullRequestShort struct {
+	PullRequestID   string
+	PullRequestName string
+	AuthorID        string
+	IsMerged        bool
+}

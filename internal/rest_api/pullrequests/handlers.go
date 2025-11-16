@@ -24,13 +24,13 @@ type PRHandlers struct {
 	prUsecase PRCreator
 }
 
-func NewPRHandlers(prCreator PRCreator) *PRHandlers {
+func NewHandlers(prCreator PRCreator) *PRHandlers {
 	return &PRHandlers{
 		prUsecase: prCreator,
 	}
 }
 
-func (h *PRHandlers) RegisterPRHandlers(e *echo.Echo) {
+func (h *PRHandlers) RegisterHandlers(e *echo.Echo) {
 	e.POST("/pullRequest/create", h.CreatePR)
 	e.POST("/pullRequest/merge", h.MergePR)
 }
