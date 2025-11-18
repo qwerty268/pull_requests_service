@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: pr_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pr_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_DSN: "host=postgres port=5432 user=postgres password=password dbname=postgres sslmode=disable"
+    ports:
+      - "8080:8080"

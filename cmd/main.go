@@ -20,7 +20,10 @@ import (
 )
 
 func main() {
-	dsn := "host=localhost port=5432 user=lev-demchenko dbname=postgres sslmode=disable"
+	dsn := os.Getenv("DB_DSN")
+	if dsn == "" {
+		log.Fatal("DB_DSN is empty")
+	}
 
 	db, err := sqlx.Open("postgres", dsn)
 	if err != nil {
@@ -28,9 +31,18 @@ func main() {
 	}
 	defer db.Close()
 
-	// Проверим соединение
 	if err := db.Ping(); err != nil {
 		log.Fatalf("failed to connect: %v", err)
+	}
+
+	// Накатываем миграции.
+	migrationSQL, err := os.ReadFile("./db/migration.sql")
+	if err != nil {
+		log.Fatalf("failed to read migration file: %v", err)
+	}
+	_, err = db.Exec(string(migrationSQL))
+	if err != nil {
+		log.Fatalf("failed to execute migration: %v", err)
 	}
 
 	prStorage := prStorage.NewStorage(db)
